@@ -1,7 +1,18 @@
 # syntax = docker/dockerfile:experimental
 FROM jitesoft/alpine:latest
+ARG VERSION
+LABEL maintainer="Johannes Tegnér <johannes@jitesoft.com>" \
+      maintainer.org="Jitesoft" \
+      maintainer.org.uri="https://jitesoft.com" \
+      com.jitesoft.project.repo.type="git" \
+      com.jitesoft.project.repo.uri="https://gitlab.com/jitesoft/dockerfiles/step-cli" \
+      com.jitesoft.project.repo.issues="https://gitlab.com/jitesoft/dockerfiles/step-cli/issues" \
+      com.jitesoft.project.registry.uri="registry.gitlab.com/jitesoft/dockerfiles/step-cli" \
+      com.jitesoft.app.step-cli.version="${VERSION}"
 
-RUN --mout=type=bind,source=./bin,target=/tmp/bin \
+ARG TARGETARCH
+
+RUN --mount=type=bind,source=./bin,target=/tmp/bin \
     cp /tmp/bin/entrypoint.sh /usr/local/bin/entrypoint; \
     cp /tmp/bin/step-${TARGETARCH} /usr/local/bin/step \
  && addgroup -g 1000 -S step \
