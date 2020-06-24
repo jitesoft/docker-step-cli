@@ -33,5 +33,5 @@ This image follows the [Jitesoft image label specification 1.0.0](https://gitlab
 
 ## Licenses
 
-Files in this repository are released under the MIT license.  
+Files in this repository are released under the [MIT license](https://gitlab.com/jitesoft/dockerfiles/step-cli/-/blob/master/LICENSE).  
 Step CLI is released under the [Apache License 2.0](https://github.com/smallstep/cli/blob/master/LICENSE).

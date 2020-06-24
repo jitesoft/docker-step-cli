@@ -67,6 +67,9 @@ containerize:
   stage: containerize
   image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
   script:
+    - mkdir bin
+    - mv step-* bin/
+    - mv entrypoint.sh bin/
     - VERSION=$(cat version.txt)
     - TAGLIST=$(helper "${CI_REGISTRY_IMAGE}" "latest,${VERSION}")
     - docker buildx build --platform linux/arm64,linux/amd64 ${TAGLIST} --build-arg VERSION=$(cat version.txt) --push --progress plain .
