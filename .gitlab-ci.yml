@@ -57,14 +57,14 @@ build:arm64:
   variables:
     GIT_STRATEGY: none
     ARCH: arm64
+    GOARCH: arm64
   extends: .build
-  tags:
-    - native-aarch64
 
 build:amd64:
   variables:
     GIT_STRATEGY: none
     ARCH: amd64
+    GOARCH: amd64
   extends: .build
   tags:
     - native-amd64
@@ -73,6 +73,7 @@ containerize:
   needs:
     - build:amd64
     - build:arm64
+    - build:armv7
   stage: containerize
   image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
   script:
