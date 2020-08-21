@@ -131,7 +131,7 @@ containerize:stable:
     - export VERSION=$(cat versions.txt | grep -Po "${TYPE}\s\K.*")
     - mv step-* bin/
     - mv entrypoint.sh bin/
-    - TAGLIST=$(helper "jitesoft/step-cli,${CI_REGISTRY_IMAGE}" "${TYPE},${VERSION}")
+    - TAGLIST=$(helper "jitesoft/step-cli,${CI_REGISTRY_IMAGE}" "${TYPE},${VERSION},v${VERSION}")
     - docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 ${TAGLIST} --build-arg VERSION=$(cat version.txt) --build-arg BUILD_TYPE=${TYPE} --push --progress plain .
   tags:
     - protected
