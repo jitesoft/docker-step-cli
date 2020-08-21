@@ -17,8 +17,8 @@ download:
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
     - echo "stable ${STABLE#?}" > versions.txt
     - echo "latest ${LATEST#?}" >> versions.txt
-    - curl -sSL https://github.com/smallstep/cli/releases/download/${VERSION}/step-cli_${LATEST#?}.tar.gz -o latest.tar.gz
-    - curl -sSL https://github.com/smallstep/cli/releases/download/${VERSION}/step-cli_${STABLE#?}.tar.gz -o stable.tar.gz
+    - curl -sSL https://github.com/smallstep/cli/archive/download/${VERSION}/step-cli_${LATEST#?}.tar.gz -o latest.tar.gz
+    - curl -sSL https://github.com/smallstep/cli/archive/download/${VERSION}/step-cli_${STABLE#?}.tar.gz -o stable.tar.gz
   artifacts:
     paths:
       - latest.tar.gz
@@ -35,7 +35,7 @@ download:
     - apk add --no-cache git make tar file grep
     - export VERSION=$(cat versions.txt | grep -Po "${TYPE}\s\K.*")
     - mkdir src
-    - tar -xzf ${TYPE}.tar.gz -C src/
+    - tar -xzf "${TYPE}.tar.gz" -C src/
     - cd src
     - make V=1 bin/step
     - cd ..
