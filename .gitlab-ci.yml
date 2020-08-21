@@ -13,13 +13,17 @@ download:
   variables:
     GIT_STRATEGY: none
   script:
-    - VERSION=$(wget -qO- https://github.com/smallstep/cli/releases | grep -oP '(?<=releases\/tag\/)(.*?)(?=\">)' | awk 'NR==1{print $1}' | head -1)
-    - echo ${VERSION#?} > version.txt
-    - curl -sSL https://github.com/smallstep/cli/releases/download/${VERSION}/step-cli_${VERSION#?}.tar.gz -o source.tar.gz
+    - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].name")
+    - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
+    - echo "stable ${STABLE#?}" > versions.txt
+    - echo "latest ${LATEST#?}" >> versions.txt
+    - curl -sSL https://github.com/smallstep/cli/releases/download/${VERSION}/step-cli_${LATEST#?}.tar.gz -o latest.tar.gz
+    - curl -sSL https://github.com/smallstep/cli/releases/download/${VERSION}/step-cli_${STABLE#?}.tar.gz -o stable.tar.gz
   artifacts:
     paths:
-      - source.tar.gz
-      - version.txt
+      - latest.tar.gz
+      - stable.tar.gz
+      - versions.txt
     expire_in: 1 day
 
 .build:
@@ -28,23 +32,24 @@ download:
     - download
   image: registry.gitlab.com/jitesoft/dockerfiles/go:latest
   script:
-    - apk add --no-cache git make tar file
-    - export VERSION=$(cat version.txt)
+    - apk add --no-cache git make tar file grep
+    - export VERSION=$(cat versions.txt | grep -Po "${TYPE}\s\K.*")
     - mkdir src
     - tar -xzf source.tar.gz -C src/
     - cd src
     - make V=1 bin/step
     - cd ..
     - mv src/bin/step ./step-${ARCH}
-    - file ./step-${ARCH}
+    - file ./step-${TYPE}-${ARCH}
   artifacts:
     expire_in: 1 day
     paths:
-      - version.txt
-      - step-${ARCH}
+      - versions.txt
+      - step-${TYPE}-${ARCH}
 
-build:armv7:
+build:armv7:stable:
   variables:
+    TYPE: stable
     GIT_STRATEGY: none
     ARCH: arm
     GOARCH: arm
@@ -53,15 +58,17 @@ build:armv7:
   tags:
     - native-amd64
 
-build:arm64:
+build:arm64:stable:
   variables:
+    TYPE: stable
     GIT_STRATEGY: none
     ARCH: arm64
     GOARCH: arm64
   extends: .build
 
-build:amd64:
+build:amd64:stable:
   variables:
+    TYPE: stable
     GIT_STRATEGY: none
     ARCH: amd64
     GOARCH: amd64
@@ -69,33 +76,79 @@ build:amd64:
   tags:
     - native-amd64
 
-containerize:
+build:armv7:latest:
+  variables:
+    TYPE: latest
+    GIT_STRATEGY: none
+    ARCH: arm
+    GOARCH: arm
+    GOARM: 7
+  extends: .build
+  tags:
+    - native-amd64
+
+build:arm64:latest:
+  variables:
+    TYPE: latest
+    GIT_STRATEGY: none
+    ARCH: arm64
+    GOARCH: arm64
+  extends: .build
+
+build:amd64:latest:
+  variables:
+    TYPE: latest
+    GIT_STRATEGY: none
+    ARCH: amd64
+    GOARCH: amd64
+  extends: .build
+  tags:
+    - native-amd64
+
+containerize:latest:
+    extends: .containerize
+    needs:
+      - build:amd64:latest
+      - build:arm64:latest
+      - build:armv7:latest
+    variables:
+      TYPE: latest
+
+containerize:stable:
+  extends: .containerize
   needs:
-    - build:amd64
-    - build:arm64
-    - build:armv7
+    - build:amd64:stable
+    - build:arm64:stable
+    - build:armv7:stable
+  variables:
+    TYPE: stable
+
+.containerize:
   stage: containerize
   image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
   script:
     - mkdir bin
+    - export VERSION=$(cat versions.txt | grep -Po "${TYPE}\s\K.*")
     - mv step-* bin/
     - mv entrypoint.sh bin/
-    - VERSION=$(cat version.txt)
-    - TAGLIST=$(helper "jitesoft/step-cli,${CI_REGISTRY_IMAGE}" "latest,${VERSION}")
-    - docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 ${TAGLIST} --build-arg VERSION=$(cat version.txt) --push --progress plain .
+    - TAGLIST=$(helper "jitesoft/step-cli,${CI_REGISTRY_IMAGE}" "${TYPE},${VERSION}")
+    - docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 ${TAGLIST} --build-arg VERSION=$(cat version.txt) --build-arg BUILD_TYPE=${TYPE} --push --progress plain .
   tags:
     - protected
     - buildx
   artifacts:
     expire_in: 1 hour
-    paths:
-      - version.txt
 
-scan:
-  needs:
-    - containerize
+scan:stable:
   extends: .container_scanning
   variables:
-    SCANNING_IMAGE_NAME: ${CI_REGISTRY_IMAGE}:$(cat version.txt)
+    SCANNING_IMAGE_NAME: ${CI_REGISTRY_IMAGE}:stable
+    GIT_STRATEGY: none
+    NO_OUTPUT: "true"
+
+scan:latest:
+  extends: .container_scanning
+  variables:
+    SCANNING_IMAGE_NAME: ${CI_REGISTRY_IMAGE}:latest
     GIT_STRATEGY: none
     NO_OUTPUT: "true"
