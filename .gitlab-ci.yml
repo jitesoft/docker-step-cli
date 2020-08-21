@@ -35,7 +35,7 @@ download:
     - apk add --no-cache git make tar file grep
     - export VERSION=$(cat versions.txt | grep -Po "${TYPE}\s\K.*")
     - mkdir src
-    - tar -xzf source.tar.gz -C src/
+    - tar -xzf ${TYPE}.tar.gz -C src/
     - cd src
     - make V=1 bin/step
     - cd ..
