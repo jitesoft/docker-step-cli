@@ -61,5 +61,6 @@ create-cache:
   cache:
     paths:
       - latest.txt
+      - stable.txt
     key: smallstep-cli-versions
     policy: pull-push
