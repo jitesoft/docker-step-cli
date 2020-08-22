@@ -8,20 +8,22 @@ This docker image contains [smallsteps](https://smallstep.com/) [Step CLI](https
 ## Tags
 
 All images are built from source for ARM64, ARMv7 and AMD64.  
-The tags are based on latest version at build time (0.14.4 as of writing this document) 
+The tags are based on latest version at build time (0.15.0 as of writing this document) 
 which makes the tags change more often than this README.    
-`latest` always refers to the latest version.
-
+`latest` always refers to the latest version, that is, the latest tag. Stable always uses the latest release.  
+That is, latest might contain rc, alpha and beta versions, while stable will always be the latest full release.
 
 ### Docker Hub
 
 * `jitesoft/step-cli`
     * `latest`, `x.x.x`
+    * `stable`, `x.x.x`
 
 ### Gitlab
 
 * `registry.gitlab.com/jitesoft/dockerfiles/step-cli`
   * `latest`, `x.x.x`
+  * `staböe`, `x.x.x`
   
 ## Dockerfile
 
