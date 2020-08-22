@@ -31,13 +31,13 @@ check-versions:
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
     - touch stable.txt
     - touch latest.txt
-    - echo "Checking if latest (${LATEST}) version should be built."
+    - echo "Checking if latest (${LATEST} | $(cat latest.txt)) version should be built."
     - |
       if [ "$(cat latest.txt)" != "${LATEST}" ]; then
         echo "Latest should be built."
         curl -F token=${CI_JOB_TOKEN} -F ref=master  -F "variables[VERSION]=${LATEST}" -F "variables[BUILD]=latest"  https://gitlab.com/api/v4/projects/19566024/trigger/pipeline
       fi
-    - echo "Checking if the stable (${STABLE}) version should be built."
+    - echo "Checking if the stable (${STABLE} | $(cat stable.txt)) version should be built."
     - |
       if [ "$(cat stable.txt)" != "${STABLE}" ]; then
         echo "Stable should be built."
