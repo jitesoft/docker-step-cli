@@ -1,12 +1,3 @@
-include:
-  - https://gitlab.com/jitesoft/gitlab-ci-lib/raw/master/Scan/trivy.yml
-
-stages:
-  - download
-  - build
-  - containerize
-  - scan
-
 check-versions:
   stage: .pre
   script:
@@ -16,8 +7,8 @@ check-versions:
     - CUR_LATEST=$(cat latst.txt)
     - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].name")
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
-    - if [ $STABLE != $CUR_STABLE ]; then echo "$STABLE" > build-stable.txt; fi
-    - if [ $LATEST != $CUR_LATEST ]; then echo "$LATEST" > build-stable.txt; fi
+    - if [ $STABLE != $CUR_STABLE ]; then echo "$STABLE" > build-stable.txt; echo "STABLE=build" >> .env; fi
+    - if [ $LATEST != $CUR_LATEST ]; then echo "$LATEST" > build-stable.txt; echo "LATEST=build" >> .env; fi
     - if [ $LATEST == $STABLE ]; then rm build-stable.txt; fi
   cache:
     key: step-cli.versions
@@ -25,185 +16,25 @@ check-versions:
       - stable.txt
       - latest.txt
   artifacts:
+    reports:
+      dotenv: .env
     paths:
       - build-*.txt
 
-download:latest:
+trigger-latest:
   needs:
     - check-versions
   trigger:
-    include:
-      - artifact: build-latest.txt
-        job: check-versions
-  extends: .download
-  before_script:
-    - mv build-latest.txt version.txt
+    include: /.gitlab/latest.yml
+    strategy: depend
+  rules:
+    - if: '${LATEST} == "build"'
 
-download:stable:
+trigger-stable:
   needs:
     - check-versions
   trigger:
-    include:
-      - artifact: build-stable.txt
-        job: check-versions
-  extends: .download
-  before_script:
-    - mv build-stable.txt version.txt
-
-.download:
-  stage: download
-  image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
-  variables:
-    GIT_STRATEGY: none
-  script:
-    - VERSION=$(cat version.txt)
-    - curl -sSL https://github.com/smallstep/cli/archive/download/${VERSION}/step-cli_${VERSION#?}.tar.gz -o source.tar.gz
-  artifacts:
-    paths:
-      - source.tar.gz
-      - version.txt
-    expire_in: 1 day
-
-
-.build:
-  stage: build
-  image: registry.gitlab.com/jitesoft/dockerfiles/go:latest
-  script:
-    - apk add --no-cache git make tar file grep
-    - export VERSION=$(cat version.txt)
-    - mkdir src
-    - tar -xzf source.tar.gz -C src/
-    - cd src
-    - make V=1 bin/step
-    - cd ..
-    - mv src/bin/step ./step-${ARCH}
-    - file ./step-${ARCH}
-  artifacts:
-    expire_in: 1 day
-    paths:
-      - version.txt
-      - step-${ARCH}
-
-build:armv7:stable:
-  needs:
-    - download:stable
-  variables:
-    TYPE: stable
-    GIT_STRATEGY: none
-    ARCH: arm
-    GOARCH: arm
-    GOARM: 7
-  extends: .build
-  tags:
-    - native-amd64
-
-build:arm64:stable:
-  needs:
-    - download:stable
-  variables:
-    TYPE: stable
-    GIT_STRATEGY: none
-    ARCH: arm64
-    GOARCH: arm64
-  extends: .build
-
-build:amd64:stable:
-  needs:
-    - download:stable
-  variables:
-    TYPE: stable
-    GIT_STRATEGY: none
-    ARCH: amd64
-    GOARCH: amd64
-  extends: .build
-  tags:
-    - native-amd64
-
-build:armv7:latest:
-  needs:
-    - download:latest
-  variables:
-    TYPE: latest
-    GIT_STRATEGY: none
-    ARCH: arm
-    GOARCH: arm
-    GOARM: 7
-  extends: .build
-  tags:
-    - native-amd64
-
-build:arm64:latest:
-  needs:
-    - download:latest
-  variables:
-    TYPE: latest
-    GIT_STRATEGY: none
-    ARCH: arm64
-    GOARCH: arm64
-  extends: .build
-
-build:amd64:latest:
-  needs:
-    - download:latest
-  variables:
-    TYPE: latest
-    GIT_STRATEGY: none
-    ARCH: amd64
-    GOARCH: amd64
-  extends: .build
-  tags:
-    - native-amd64
-
-containerize:latest:
-    extends: .containerize
-    needs:
-      - build:amd64:latest
-      - build:arm64:latest
-      - build:armv7:latest
-    variables:
-      TYPE: latest
-
-containerize:stable:
-  extends: .containerize
-  needs:
-    - build:amd64:stable
-    - build:arm64:stable
-    - build:armv7:stable
-  variables:
-    TYPE: stable
-
-.containerize:
-  stage: containerize
-  image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
-  script:
-    - mkdir bin
-    - export VERSION=$(cat version.txt)
-    - mv step-* bin/
-    - mv entrypoint.sh bin/
-    - TAGLIST=$(helper "jitesoft/step-cli,${CI_REGISTRY_IMAGE}" "${TYPE},${VERSION#?},${VERSION}")
-    - docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 ${TAGLIST} --build-arg VERSION=${VERSION} --push --progress plain .
-  tags:
-    - protected
-    - buildx
-  artifacts:
-    expire_in: 1 hour
-    paths:
-      - version.txt
-
-scan:stable:
-  needs:
-    - containerize:stable
-  extends: .container_scanning
-  before_script:
-    - export SCANNING_IMAGE_NAME="${CI_REGISTRY_IMAGE}:${VERSION}"
-  variables:
-    GIT_STRATEGY: none
-    NO_OUTPUT: "true"
-
-scan:latest:
-  extends: .container_scanning
-  before_script:
-    - export SCANNING_IMAGE_NAME="${CI_REGISTRY_IMAGE}:${VERSION}"
-  variables:
-    GIT_STRATEGY: none
-    NO_OUTPUT: "true"
+    include: /.gitlab/stable.yml
+    strategy: depend
+  rules:
+      - if: '${STABLE} == "build"'

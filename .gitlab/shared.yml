@@ -1,0 +1,50 @@
+.download:
+  stage: download
+  image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - VERSION=$(cat version.txt)
+    - curl -sSL https://github.com/smallstep/cli/archive/download/${VERSION}/step-cli_${VERSION#?}.tar.gz -o source.tar.gz
+  artifacts:
+    paths:
+      - source.tar.gz
+      - version.txt
+    expire_in: 1 day
+
+.build:
+  stage: build
+  image: registry.gitlab.com/jitesoft/dockerfiles/go:latest
+  script:
+    - apk add --no-cache git make tar file grep
+    - export VERSION=$(cat version.txt)
+    - mkdir src
+    - tar -xzf source.tar.gz -C src/
+    - cd src
+    - make V=1 bin/step
+    - cd ..
+    - mv src/bin/step ./step-${ARCH}
+    - file ./step-${ARCH}
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - version.txt
+      - step-${ARCH}
+
+.containerize:
+  stage: containerize
+  image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
+  script:
+    - mkdir bin
+    - export VERSION=$(cat version.txt)
+    - mv step-* bin/
+    - mv entrypoint.sh bin/
+    - TAGLIST=$(helper "jitesoft/step-cli,${CI_REGISTRY_IMAGE}" "${TYPE},${VERSION#?},${VERSION}")
+    - docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 ${TAGLIST} --build-arg VERSION=${VERSION} --push --progress plain .
+  tags:
+    - protected
+    - buildx
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - version.txt

@@ -1,0 +1,70 @@
+include:
+  - local: /.gitlab/shared.yml
+  - remote: https://gitlab.com/jitesoft/gitlab-ci-lib/raw/master/Scan/trivy.yml
+
+stages:
+  - download
+  - build
+  - containerize
+  - scan
+
+download:stable:
+  needs:
+    - check-versions
+  extends: .download
+  before_script:
+    - mv build-stable.txt version.txt
+
+build:armv7:stable:
+  needs:
+    - download:stable
+  variables:
+    TYPE: stable
+    GIT_STRATEGY: none
+    ARCH: arm
+    GOARCH: arm
+    GOARM: 7
+  extends: .build
+  tags:
+    - native-amd64
+
+build:arm64:stable:
+  needs:
+    - download:stable
+  variables:
+    TYPE: stable
+    GIT_STRATEGY: none
+    ARCH: arm64
+    GOARCH: arm64
+  extends: .build
+
+build:amd64:stable:
+  needs:
+    - download:stable
+  variables:
+    TYPE: stable
+    GIT_STRATEGY: none
+    ARCH: amd64
+    GOARCH: amd64
+  extends: .build
+  tags:
+    - native-amd64
+
+containerize:stable:
+  extends: .containerize
+  needs:
+    - build:amd64:stable
+    - build:arm64:stable
+    - build:armv7:stable
+  variables:
+    TYPE: stable
+
+scan:stable:
+  needs:
+    - containerize:stable
+  extends: .container_scanning
+  before_script:
+    - export SCANNING_IMAGE_NAME="${CI_REGISTRY_IMAGE}:${VERSION}"
+  variables:
+    GIT_STRATEGY: none
+    NO_OUTPUT: "true"
