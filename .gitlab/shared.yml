@@ -6,7 +6,7 @@
   script:
     - echo $VERSION > version.txt
     - echo "Downloading smallstep cli - ${VERSION} / ${VERSION#?}"
-    - curl -sSL https://github.com/smallstep/cli/archive/download/${VERSION}/step-cli_${VERSION#?}.tar.gz -o source.tar.gz
+    - curl -sSL https://github.com/smallstep/cli/archive/${VERSION}.tar.gz -o source.tar.gz
   artifacts:
     paths:
       - source.tar.gz
