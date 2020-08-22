@@ -45,8 +45,6 @@ check-versions:
       fi
     - echo "Pipeline triggers have been invoked. This job is done!"
 
-# The cache job just updates the cache with latest versions.
-# Need to check if this might create a deadlock, would be bad!
 create-cache:
   variables:
     GIT_STRATEGY: none
@@ -63,6 +61,5 @@ create-cache:
   cache:
     paths:
       - latest.txt
-      - stable.txt
     key: smallstep-cli-versions
     policy: pull-push
