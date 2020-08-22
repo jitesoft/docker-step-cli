@@ -1,6 +1,6 @@
 download:stable:
   needs:
-    - job: check
+    - job: check-versions
       artifacts: true
   extends: .download
   before_script:
@@ -54,7 +54,8 @@ containerize:stable:
 
 scan:stable:
   needs:
-    - containerize:stable
+    - job: containerlize:stable
+      artifacts: false
   extends: .container_scanning
   before_script:
     - export SCANNING_IMAGE_NAME="${CI_REGISTRY_IMAGE}:${VERSION}"

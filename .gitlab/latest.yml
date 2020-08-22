@@ -1,6 +1,6 @@
 download:latest:
   needs:
-    - job: check
+    - job: check-versions
       artifacts: true
   extends: .download
   before_script:
@@ -53,6 +53,9 @@ containerize:latest:
     TYPE: latest
 
 scan:latest:
+  needs:
+    - job: containerlize:latest
+      artifacts: false
   extends: .container_scanning
   before_script:
     - export SCANNING_IMAGE_NAME="${CI_REGISTRY_IMAGE}:${VERSION}"
