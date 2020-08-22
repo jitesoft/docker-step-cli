@@ -1,3 +1,6 @@
+#
+# This file contains rules that are shared between all the jobs.
+#
 .download:
   stage: download
   image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
@@ -43,7 +46,7 @@
     - TAGLIST=$(helper "jitesoft/step-cli,${CI_REGISTRY_IMAGE}" "${TYPE},${VERSION#?},${VERSION}")
     - docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 ${TAGLIST} --build-arg VERSION=${VERSION} --push --progress plain .
     - echo "Done! Triggering cache job."
-    - curl -F token=${CI_JOB_TOKEN} -F "variables[VERSION]=${VERSION}" -F "variables[TYPE]=${TYPE}" -F "variables[CACHE_CREATE]=true" -F ref=master -F https://gitlab.com/api/v4/projects/19566024/trigger/pipeline
+    - curl -F token=${CI_JOB_TOKEN} -F "variables[VERSION]=${VERSION}" -F "variables[TYPE]=${TYPE}" -F "variables[CACHE_CREATE]=true" -F ref=master https://gitlab.com/api/v4/projects/19566024/trigger/pipeline
   tags:
     - protected
     - buildx

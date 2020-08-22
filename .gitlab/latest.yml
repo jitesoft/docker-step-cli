@@ -1,3 +1,7 @@
+#
+# This file contains rules to build the latest version (not latest release).
+# This include unstable versions.
+#
 .rules-latest: &rules-latest
   rules:
     - if: '$BUILD == "latest"'
