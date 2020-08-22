@@ -16,6 +16,9 @@ check-versions:
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: always
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: always
     - if: '$CI_PIPELINE_SOURCE == "trigger"'
       when: never
   stage: check
@@ -64,3 +67,8 @@ create-cache:
       - stable.txt
     key: smallstep-cli-versions
     policy: pull-push
+
+trigger-next:
+  stage: .post
+  trigger:
+    project: jitesoft/dockerfiles/step-ca
