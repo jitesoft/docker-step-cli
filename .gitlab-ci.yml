@@ -68,7 +68,3 @@ create-cache:
     key: smallstep-cli-versions
     policy: pull-push
 
-trigger-next:
-  stage: .post
-  trigger:
-    project: jitesoft/dockerfiles/step-ca
