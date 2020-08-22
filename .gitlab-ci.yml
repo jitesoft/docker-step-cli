@@ -1,6 +1,15 @@
+include:
+  - local: /.gitlab/shared.yml
+  - local: /.gitlab/latest.yml
+  - local: /.gitlab/stable.yml
+  - remote: https://gitlab.com/jitesoft/gitlab-ci-lib/raw/master/Scan/trivy.yml
+
 stages:
   - check
-  - trigger
+  - download
+  - build
+  - containerize
+  - scan
 
 check-versions:
   stage: check
@@ -13,11 +22,14 @@ check-versions:
     - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].tag_name")
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
     - echo "$LATEST" > build-latest.txt
-    - if [ "${LATEST}" != "${STABLE}" ]; then echo "$STABLE" > build-stable.txt; fi
+    - echo "LATEST=build" > .env
+    - if [ "${LATEST}" != "${STABLE}" ]; then echo "$STABLE" > build-stable.txt; echo "STABLE=build" >> .env fi
   artifacts:
     when: on_success
     paths:
       - build-*.txt
+    reports:
+      dotenv: .env
 
 trigger-latest:
   stage: trigger
