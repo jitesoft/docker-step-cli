@@ -63,6 +63,7 @@ scan:latest:
       artifacts: false
   extends: .container_scanning
   before_script:
+    - export VERSION=$(cat version.txt)
     - export SCANNING_IMAGE_NAME="${CI_REGISTRY_IMAGE}:${VERSION}"
   variables:
     GIT_STRATEGY: none
