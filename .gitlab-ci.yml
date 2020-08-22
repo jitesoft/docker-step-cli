@@ -7,47 +7,86 @@ stages:
   - containerize
   - scan
 
-download:
+check-versions:
+  stage: .pre
+  script:
+    - if [ ! -f "stable.txt" ]; then touch stable.txt; fi
+    - if [ ! -f "latest.txt" ]; then touch latest.txt; fi
+    - CUR_STABLE=$(cat stable.txt)
+    - CUR_LATEST=$(cat latst.txt)
+    - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].name")
+    - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
+    - if [ $STABLE != $CUR_STABLE ]; then echo "$STABLE" > build-stable.txt; fi
+    - if [ $LATEST != $CUR_LATEST ]; then echo "$LATEST" > build-stable.txt; fi
+    - if [ $LATEST == $STABLE ]; then rm build-stable.txt; fi
+  cache:
+    key: step-cli.versions
+    paths:
+      - stable.txt
+      - latest.txt
+  artifacts:
+    paths:
+      - build-*.txt
+
+download:latest:
+  needs:
+    - check-versions
+  trigger:
+    include:
+      - artifact: build-latest.txt
+        job: check-versions
+  extends: .download
+  before_script:
+    - mv build-latest.txt version.txt
+
+download:stable:
+  needs:
+    - check-versions
+  trigger:
+    include:
+      - artifact: build-stable.txt
+        job: check-versions
+  extends: .download
+  before_script:
+    - mv build-stable.txt version.txt
+
+.download:
   stage: download
   image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
   variables:
     GIT_STRATEGY: none
   script:
-    - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].name")
-    - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
-    - echo "stable ${STABLE#?}" > versions.txt
-    - echo "latest ${LATEST#?}" >> versions.txt
-    - curl -sSL https://github.com/smallstep/cli/archive/download/${VERSION}/step-cli_${LATEST#?}.tar.gz -o latest.tar.gz
-    - curl -sSL https://github.com/smallstep/cli/archive/download/${VERSION}/step-cli_${STABLE#?}.tar.gz -o stable.tar.gz
+    - VERSION=$(cat version.txt)
+    - curl -sSL https://github.com/smallstep/cli/archive/download/${VERSION}/step-cli_${VERSION#?}.tar.gz -o source.tar.gz
   artifacts:
     paths:
-      - latest.tar.gz
-      - stable.tar.gz
-      - versions.txt
+      - source.tar.gz
+      - version.txt
     expire_in: 1 day
+
 
 .build:
   stage: build
-  needs:
-    - download
   image: registry.gitlab.com/jitesoft/dockerfiles/go:latest
   script:
     - apk add --no-cache git make tar file grep
-    - export VERSION=$(cat versions.txt | grep -Po "${TYPE}\s\K.*")
+    - export VERSION=$(cat version.txt)
     - mkdir src
-    - tar -xzf "${TYPE}.tar.gz" -C src/
+    - tar -xzf source.tar.gz -C src/
     - cd src
     - make V=1 bin/step
     - cd ..
     - mv src/bin/step ./step-${ARCH}
-    - file ./step-${TYPE}-${ARCH}
+    - file ./step-${ARCH}
   artifacts:
     expire_in: 1 day
     paths:
-      - versions.txt
-      - step-${TYPE}-${ARCH}
+      - version.txt
+      - step-${ARCH}
 
 build:armv7:stable:
+  needs:
+    - download:stable
   variables:
     TYPE: stable
     GIT_STRATEGY: none
@@ -59,6 +98,8 @@ build:armv7:stable:
     - native-amd64
 
 build:arm64:stable:
+  needs:
+    - download:stable
   variables:
     TYPE: stable
     GIT_STRATEGY: none
@@ -67,6 +108,8 @@ build:arm64:stable:
   extends: .build
 
 build:amd64:stable:
+  needs:
+    - download:stable
   variables:
     TYPE: stable
     GIT_STRATEGY: none
@@ -77,6 +120,8 @@ build:amd64:stable:
     - native-amd64
 
 build:armv7:latest:
+  needs:
+    - download:latest
   variables:
     TYPE: latest
     GIT_STRATEGY: none
@@ -88,6 +133,8 @@ build:armv7:latest:
     - native-amd64
 
 build:arm64:latest:
+  needs:
+    - download:latest
   variables:
     TYPE: latest
     GIT_STRATEGY: none
@@ -96,6 +143,8 @@ build:arm64:latest:
   extends: .build
 
 build:amd64:latest:
+  needs:
+    - download:latest
   variables:
     TYPE: latest
     GIT_STRATEGY: none
@@ -128,27 +177,33 @@ containerize:stable:
   image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
   script:
     - mkdir bin
-    - export VERSION=$(cat versions.txt | grep -Po "${TYPE}\s\K.*")
+    - export VERSION=$(cat version.txt)
     - mv step-* bin/
     - mv entrypoint.sh bin/
-    - TAGLIST=$(helper "jitesoft/step-cli,${CI_REGISTRY_IMAGE}" "${TYPE},${VERSION},v${VERSION}")
-    - docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 ${TAGLIST} --build-arg VERSION=$(cat version.txt) --build-arg BUILD_TYPE=${TYPE} --push --progress plain .
+    - TAGLIST=$(helper "jitesoft/step-cli,${CI_REGISTRY_IMAGE}" "${TYPE},${VERSION#?},${VERSION}")
+    - docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 ${TAGLIST} --build-arg VERSION=${VERSION} --push --progress plain .
   tags:
     - protected
     - buildx
   artifacts:
     expire_in: 1 hour
+    paths:
+      - version.txt
 
 scan:stable:
+  needs:
+    - containerize:stable
   extends: .container_scanning
+  before_script:
+    - export SCANNING_IMAGE_NAME="${CI_REGISTRY_IMAGE}:${VERSION}"
   variables:
-    SCANNING_IMAGE_NAME: ${CI_REGISTRY_IMAGE}:stable
     GIT_STRATEGY: none
     NO_OUTPUT: "true"
 
 scan:latest:
   extends: .container_scanning
+  before_script:
+    - export SCANNING_IMAGE_NAME="${CI_REGISTRY_IMAGE}:${VERSION}"
   variables:
-    SCANNING_IMAGE_NAME: ${CI_REGISTRY_IMAGE}:latest
     GIT_STRATEGY: none
     NO_OUTPUT: "true"

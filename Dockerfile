@@ -11,11 +11,10 @@ LABEL maintainer="Johannes Tegnér <johannes@jitesoft.com>" \
       com.jitesoft.app.step-cli.version="${VERSION}"
 
 ARG TARGETARCH
-ARG BUILD_TYPE
 
 RUN --mount=type=bind,source=./bin,target=/tmp/bin \
     cp /tmp/bin/entrypoint.sh /usr/local/bin/entrypoint; \
-    cp /tmp/bin/step-${BUILD_TYPE}-${TARGETARCH} /usr/local/bin/step \
+    cp /tmp/bin/step-${TARGETARCH} /usr/local/bin/step \
  && addgroup -g 1000 -S step \
  && adduser -u 1000 -D -G step step \
  && chown step:step /home/step \
