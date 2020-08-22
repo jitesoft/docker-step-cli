@@ -12,6 +12,12 @@ stages:
 
 
 check-versions:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "trigger"'
+      when: never
   stage: check
   script:
     - apk add --no-cache jq wget

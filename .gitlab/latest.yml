@@ -1,6 +1,8 @@
 download:latest:
   rules:
-    - if: "$BUILD == latest"
+    - if: '$BUILD == "latest"'
+      when: always
+    - when: never
   extends: .download
   before_script:
     - apk add --no-cache grep wget
@@ -8,7 +10,9 @@ download:latest:
 
 build:armv7:latest:
   rules:
-    - if: "$BUILD == latest"
+    - if: '$BUILD == "latest"'
+      when: always
+    - when: never
   needs:
     - download:latest
   variables:
@@ -23,7 +27,9 @@ build:armv7:latest:
 
 build:arm64:latest:
   rules:
-    - if: "$BUILD == latest"
+    - if: '$BUILD == "latest"'
+      when: always
+    - when: never
   needs:
     - download:latest
   variables:
@@ -35,7 +41,9 @@ build:arm64:latest:
 
 build:amd64:latest:
   rules:
-    - if: "$BUILD == latest"
+    - if: '$BUILD == "latest"'
+      when: always
+    - when: never
   needs:
     - download:latest
   variables:
@@ -49,7 +57,9 @@ build:amd64:latest:
 
 containerize:latest:
   rules:
-    - if: "$BUILD == latest"
+    - if: '$BUILD == "latest"'
+      when: always
+    - when: never
   extends: .containerize
   needs:
     - build:amd64:latest
@@ -60,7 +70,9 @@ containerize:latest:
 
 scan:latest:
   rules:
-    - if: "$BUILD == latest"
+    - if: '$BUILD == "latest"'
+      when: always
+    - when: never
   needs:
     - job: containerize:latest
       artifacts: false
