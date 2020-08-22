@@ -8,7 +8,7 @@ check-versions:
     - if [ ! -f "stable.txt" ]; then touch stable.txt; fi
     - if [ ! -f "latest.txt" ]; then touch latest.txt; fi
     - CUR_STABLE=$(cat stable.txt)
-    - CUR_LATEST=$(cat latst.txt)
+    - CUR_LATEST=$(cat laest.txt)
     - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].name")
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
     - if [ $STABLE != $CUR_STABLE ]; then echo "$STABLE" > build-stable.txt; echo "STABLE=build" >> .env; fi
