@@ -28,7 +28,7 @@ trigger-latest:
     include: /.gitlab/latest.yml
     strategy: depend
   rules:
-    - if: '${LATEST} == "build"'
+    - if: '$LATEST == "build"'
 
 trigger-stable:
   needs:
@@ -37,4 +37,4 @@ trigger-stable:
     include: /.gitlab/stable.yml
     strategy: depend
   rules:
-      - if: '${STABLE} == "build"'
+      - if: '$STABLE == "build"'
