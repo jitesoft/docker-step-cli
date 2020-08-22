@@ -54,7 +54,7 @@ containerize:stable:
 
 scan:stable:
   needs:
-    - job: containerlize:stable
+    - job: containerize:stable
       artifacts: false
   extends: .container_scanning
   before_script:

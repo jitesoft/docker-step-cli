@@ -54,7 +54,7 @@ containerize:latest:
 
 scan:latest:
   needs:
-    - job: containerlize:latest
+    - job: containerize:latest
       artifacts: false
   extends: .container_scanning
   before_script:
