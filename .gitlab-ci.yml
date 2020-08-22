@@ -27,5 +27,5 @@ check-versions:
 #    - CUR_LATEST=$(cat latest.txt)
     - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].tag_name")
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
-    - curl -F token=${CI_JOB_TOKEN} -F ref=master -F "variables[BUILD]=latest"  https://gitlab.com/api/v4/projects/19566024/trigger/pipeline
-    - if [ "${LATEST}" != "${STABLE}" ]; then curl -F token=${CI_JOB_TOKEN} -F "variables[BUILD]=stable" -F ref=master -F https://gitlab.com/api/v4/projects/19566024/trigger/pipeline; fi
+    - curl -F token=${CI_JOB_TOKEN} -F ref=master  -F "variables[VERSION]=${LATEST}" -F "variables[BUILD]=latest"  https://gitlab.com/api/v4/projects/19566024/trigger/pipeline
+    - if [ "${LATEST}" != "${STABLE}" ]; then curl -F token=${CI_JOB_TOKEN}  -F "variables[VERSION]=${STABLE}" -F "variables[BUILD]=stable" -F ref=master -F https://gitlab.com/api/v4/projects/19566024/trigger/pipeline; fi

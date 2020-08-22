@@ -4,7 +4,7 @@
   variables:
     GIT_STRATEGY: none
   script:
-    - VERSION=$(cat version.txt)
+    - echo $VERSION > version.txt
     - echo "Downloading smallstep cli - ${VERSION} / ${VERSION#?}"
     - curl -sSL https://github.com/smallstep/cli/archive/download/${VERSION}/step-cli_${VERSION#?}.tar.gz -o source.tar.gz
   artifacts:
