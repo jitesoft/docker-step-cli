@@ -1,3 +1,7 @@
+workflow:
+  rules:
+    - "$BUILD=stable"
+
 include:
   - local: /.gitlab/shared.yml
   - remote: https://gitlab.com/jitesoft/gitlab-ci-lib/raw/master/Scan/trivy.yml
@@ -11,7 +15,8 @@ stages:
 download:stable:
   extends: .download
   before_script:
-    - mv build-stable.txt version.txt
+    - apk add --no-cache grep wget
+    - wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].tag_name" > version.txt
 
 build:armv7:stable:
   needs:
