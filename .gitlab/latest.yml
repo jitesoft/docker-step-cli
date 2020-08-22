@@ -9,6 +9,7 @@ stages:
   - scan
 
 check:
+  stage: .pre
   variables:
     GIT_STRATEGY: none
   script:
