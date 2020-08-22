@@ -2,6 +2,10 @@ include:
   - local: /.gitlab/shared.yml
   - remote: https://gitlab.com/jitesoft/gitlab-ci-lib/raw/master/Scan/trivy.yml
 
+workflow:
+  rules:
+    - if: $STABLE == "build"
+
 stages:
   - download
   - build

@@ -12,11 +12,9 @@ check-versions:
 #    - CUR_LATEST=$(cat latest.txt)
     - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].tag_name")
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
-    - echo "$STABLE" > build-stable.txt
-    - echo "STABLE=build" > .env
     - echo "$LATEST" > build-latest.txt
-    - echo "LATEST=build" >> .env
-    - if [ "${LATEST}" == "${STABLE}" ]; then rm build-stable.txt; echo "LATEST=build" > .env; fi
+    - echo "LATEST=build" > .env
+    - if [ "${LATEST}" != "${STABLE}" ]; then echo "$STABLE" > build-stable.txt; echo "STABLE=build" >> .env; fi
   artifacts:
     when: on_success
     reports:
@@ -33,8 +31,9 @@ trigger-latest:
     include:
       - local: /.gitlab/latest.yml
     strategy: depend
-  rules:
-    - if: $LATEST == "build"
+  artifacts:
+    reports:
+      dotenv: .env
 
 trigger-stable:
   stage: trigger
@@ -45,5 +44,6 @@ trigger-stable:
     include:
       - local: /.gitlab/stable.yml
     strategy: depend
-  rules:
-    - if: $STABLE == "build"
+  artifacts:
+    reports:
+      dotenv: .env
