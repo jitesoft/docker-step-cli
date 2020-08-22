@@ -26,7 +26,7 @@ check-versions:
       - build-*.txt
 
 trigger-latest:
-  stage: trugger
+  stage: trigger
   needs:
     - check-versions
   trigger:
@@ -36,7 +36,7 @@ trigger-latest:
     - if: '$LATEST == "build"'
 
 trigger-stable:
-  stage: trugger
+  stage: trigger
   needs:
     - check-versions
   trigger:
