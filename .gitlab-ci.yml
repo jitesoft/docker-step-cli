@@ -50,6 +50,6 @@ trigger-stable:
     include: /.gitlab/stable.yml
     strategy: depend
   rules:
-    - if: '$STABLE == "build"
+    - if: '$STABLE == "build"'
     - changes:
         - Dockerfile
