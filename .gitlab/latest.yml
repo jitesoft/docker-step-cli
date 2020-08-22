@@ -13,8 +13,6 @@ stages:
   - scan
 
 download:latest:
-  needs:
-    - check-versions
   extends: .download
   before_script:
     - mv build-latest.txt version.txt

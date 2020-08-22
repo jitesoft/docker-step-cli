@@ -13,8 +13,6 @@ stages:
   - scan
 
 download:stable:
-  needs:
-    - check-versions
   extends: .download
   before_script:
     - mv build-stable.txt version.txt
