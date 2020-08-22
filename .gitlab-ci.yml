@@ -5,7 +5,7 @@ stages:
 check-versions:
   stage: check
   script:
-    - apk add --no-cache jq
+    - apk add --no-cache jq wget
     - if [ ! -f "stable.txt" ]; then touch stable.txt; fi
     - if [ ! -f "latest.txt" ]; then touch latest.txt; fi
     - CUR_STABLE=$(cat stable.txt)
