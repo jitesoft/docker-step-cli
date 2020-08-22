@@ -31,9 +31,6 @@ trigger-latest:
     include:
       - local: /.gitlab/latest.yml
     strategy: depend
-  artifacts:
-    reports:
-      dotenv: .env
 
 trigger-stable:
   stage: trigger
@@ -44,6 +41,3 @@ trigger-stable:
     include:
       - local: /.gitlab/stable.yml
     strategy: depend
-  artifacts:
-    reports:
-      dotenv: .env
