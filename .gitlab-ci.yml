@@ -10,7 +10,7 @@ check-versions:
     - if [ ! -f "latest.txt" ]; then touch latest.txt; fi
     - CUR_STABLE=$(cat stable.txt)
     - CUR_LATEST=$(cat latest.txt)
-    - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].name")
+    - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].tag_name")
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
     - echo "Stable - ${STABLE} vs ${CUR_STABLE}"
     - echo "Latest - ${LATEST} vs ${CUR_LATEST}"
@@ -31,20 +31,25 @@ check-versions:
 
 trigger-latest:
   stage: trigger
-  needs:
+  dependencies:
     - check-versions
   trigger:
     include: /.gitlab/latest.yml
     strategy: depend
   rules:
     - if: '$LATEST == "build"'
+    - changes:
+        - Dockerfile
+
 
 trigger-stable:
   stage: trigger
-  needs:
+  dependencies:
     - check-versions
   trigger:
     include: /.gitlab/stable.yml
     strategy: depend
   rules:
-      - if: '$STABLE == "build"'
+    - if: '$STABLE == "build"
+    - changes:
+        - Dockerfile
