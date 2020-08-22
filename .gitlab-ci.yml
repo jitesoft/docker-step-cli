@@ -24,6 +24,8 @@ check-versions:
 
 trigger-latest:
   stage: trigger
+  variables:
+    LATEST: ${LATEST}
   needs:
     - job: check-versions
       artifacts: true
@@ -34,6 +36,8 @@ trigger-latest:
 
 trigger-stable:
   stage: trigger
+  variables:
+    STABLE: ${LATEST}
   needs:
     - job: check-versions
       artifacts: true
