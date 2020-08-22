@@ -1,6 +1,15 @@
+include:
+  - local: /.gitlab/shared.yml
+  - remote: https://gitlab.com/jitesoft/gitlab-ci-lib/raw/master/Scan/trivy.yml
+  - local: /.gitlab/stable.yml
+  - local: /.gitlab/latest.yml
 stages:
   - check
-  - trigger
+  - download
+  - build
+  - containerize
+  - scan
+
 
 check-versions:
   stage: check
@@ -12,5 +21,5 @@ check-versions:
 #    - CUR_LATEST=$(cat latest.txt)
     - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].tag_name")
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
-    - curl -F token=${CI_JOB_TOKEN} -F ref=master -F "variables[CI_CONFIG_PATH]=.gitlab/latest.yml"  https://gitlab.com/api/v4/projects/19566024/trigger/pipeline
-    - if [ "${LATEST}" != "${STABLE}" ]; then curl -F token=${CI_JOB_TOKEN} -F "variables[CI_CONFIG_PATH]=.gitlab/stable.yml" -F ref=master -F https://gitlab.com/api/v4/projects/19566024/trigger/pipeline; fi
+    - curl -F token=${CI_JOB_TOKEN} -F ref=master -F "variables[BUILD]=latest"  https://gitlab.com/api/v4/projects/19566024/trigger/pipeline
+    - if [ "${LATEST}" != "${STABLE}" ]; then curl -F token=${CI_JOB_TOKEN} -F "variables[BUILD]=stable" -F ref=master -F https://gitlab.com/api/v4/projects/19566024/trigger/pipeline; fi
