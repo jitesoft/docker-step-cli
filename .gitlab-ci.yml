@@ -1,5 +1,9 @@
+stages:
+  - check
+  - trigger
+
 check-versions:
-  stage: .pre
+  stage: check
   script:
     - if [ ! -f "stable.txt" ]; then touch stable.txt; fi
     - if [ ! -f "latest.txt" ]; then touch latest.txt; fi
@@ -22,6 +26,7 @@ check-versions:
       - build-*.txt
 
 trigger-latest:
+  stage: trugger
   needs:
     - check-versions
   trigger:
@@ -31,6 +36,7 @@ trigger-latest:
     - if: '$LATEST == "build"'
 
 trigger-stable:
+  stage: trugger
   needs:
     - check-versions
   trigger:
