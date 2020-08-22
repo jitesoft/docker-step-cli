@@ -13,19 +13,14 @@ check-versions:
     - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].tag_name")
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
     - echo "$LATEST" > build-latest.txt
-    - echo "LATEST=build" > .env
-    - if [ "${LATEST}" != "${STABLE}" ]; then echo "$STABLE" > build-stable.txt; echo "STABLE=build" >> .env; fi
+    - if [ "${LATEST}" != "${STABLE}" ]; then echo "$STABLE" > build-stable.txt; fi
   artifacts:
     when: on_success
-    reports:
-      dotenv: .env
     paths:
       - build-*.txt
 
 trigger-latest:
   stage: trigger
-  variables:
-    LATEST: ${LATEST}
   needs:
     - job: check-versions
       artifacts: true
@@ -36,8 +31,6 @@ trigger-latest:
 
 trigger-stable:
   stage: trigger
-  variables:
-    STABLE: ${LATEST}
   needs:
     - job: check-versions
       artifacts: true

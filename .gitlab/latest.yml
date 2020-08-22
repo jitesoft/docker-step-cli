@@ -2,20 +2,30 @@ include:
   - local: /.gitlab/shared.yml
   - remote: https://gitlab.com/jitesoft/gitlab-ci-lib/raw/master/Scan/trivy.yml
 
-workflow:
-  rules:
-    - if: $LATEST == "build"
-
 stages:
   - download
   - build
   - containerize
   - scan
 
+check:
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - if [ -f build-latest.txt ]; then echo "LATEST=build" > .env; fi
+  artifacts:
+    reports:
+      dotenv: .env
+
 download:latest:
+  needs:
+    - job: check
+      artifacts: true
   extends: .download
   before_script:
     - mv build-latest.txt version.txt
+  rules:
+    - if: $LATEST == "build"
 
 build:armv7:latest:
   needs:

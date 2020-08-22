@@ -2,20 +2,30 @@ include:
   - local: /.gitlab/shared.yml
   - remote: https://gitlab.com/jitesoft/gitlab-ci-lib/raw/master/Scan/trivy.yml
 
-workflow:
-  rules:
-    - if: $STABLE == "build"
-
 stages:
   - download
   - build
   - containerize
   - scan
 
+check:
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - if [ -f build-stable.txt ]; then echo "STABLE=build" > .env; fi
+  artifacts:
+    reports:
+      dotenv: .env
+
 download:stable:
+  needs:
+    - job: check
+      artifacts: true
   extends: .download
   before_script:
     - mv build-stable.txt version.txt
+  rules:
+    - if: $STABLE == "build"
 
 build:armv7:stable:
   needs:
