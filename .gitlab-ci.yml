@@ -6,22 +6,17 @@ check-versions:
   stage: check
   script:
     - apk add --no-cache jq wget
-    - if [ ! -f "stable.txt" ]; then touch stable.txt; fi
-    - if [ ! -f "latest.txt" ]; then touch latest.txt; fi
-    - CUR_STABLE=$(cat stable.txt)
-    - CUR_LATEST=$(cat latest.txt)
+#    - if [ ! -f "stable.txt" ]; then touch stable.txt; fi
+#    - if [ ! -f "latest.txt" ]; then touch latest.txt; fi
+#    - CUR_STABLE=$(cat stable.txt)
+#    - CUR_LATEST=$(cat latest.txt)
     - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].tag_name")
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
-    - echo "Stable - ${STABLE} vs ${CUR_STABLE}"
-    - echo "Latest - ${LATEST} vs ${CUR_LATEST}"
-    - if [ "${STABLE}" != "${CUR_STABLE}" ]; then echo "$STABLE" > build-stable.txt; echo "STABLE=build" > .env; fi
-    - if [ "${LATEST}" != "${CUR_LATEST}" ]; then echo "$LATEST" > build-latest.txt; echo "LATEST=build" >> .env; fi
+    - echo "$STABLE" > build-stable.txt
+    - echo "STABLE=build" > .env
+    - echo "$LATEST" > build-latest.txt
+    - echo "LATEST=build" >> .env
     - if [ "${LATEST}" == "${STABLE}" ]; then rm build-stable.txt; echo "LATEST=build" > .env; fi
-  cache:
-    key: step-cli.versions
-    paths:
-      - stable.txt
-      - latest.txt
   artifacts:
     when: on_success
     reports:
@@ -35,13 +30,11 @@ trigger-latest:
     - job: check-versions
       artifacts: true
   trigger:
-    include: /.gitlab/latest.yml
+    include:
+      - local: /.gitlab/latest.yml
     strategy: depend
   rules:
     - if: $LATEST == "build"
-    - changes:
-        - Dockerfile
-
 
 trigger-stable:
   stage: trigger
@@ -49,9 +42,8 @@ trigger-stable:
     - job: check-versions
       artifacts: true
   trigger:
-    include: /.gitlab/stable.yml
+    include:
+      - local: /.gitlab/stable.yml
     strategy: depend
   rules:
     - if: $STABLE == "build"
-    - changes:
-        - Dockerfile
