@@ -30,23 +30,3 @@ check-versions:
       - build-*.txt
     reports:
       dotenv: .env
-
-trigger-latest:
-  stage: trigger
-  needs:
-    - job: check-versions
-      artifacts: true
-  trigger:
-    include:
-      - local: /.gitlab/latest.yml
-    strategy: depend
-
-trigger-stable:
-  stage: trigger
-  needs:
-    - job: check-versions
-      artifacts: true
-  trigger:
-    include:
-      - local: /.gitlab/stable.yml
-    strategy: depend
