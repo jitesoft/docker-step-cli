@@ -36,7 +36,6 @@
   image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
   script:
     - mkdir bin
-    - export VERSION=$(cat version.txt)
     - mv step-* bin/
     - mv entrypoint.sh bin/
     - TAGLIST=$(helper "jitesoft/step-cli,${CI_REGISTRY_IMAGE}" "${TYPE},${VERSION#?},${VERSION}")
