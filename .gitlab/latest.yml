@@ -1,16 +1,13 @@
+include:
+  - local: /.gitlab/shared.yml
+  - remote: https://gitlab.com/jitesoft/gitlab-ci-lib/raw/master/Scan/trivy.yml
+
 download:latest:
-  needs:
-    - job: check-versions
-      artifacts: true
   extends: .download
   before_script:
     - mv build-latest.txt version.txt
-  rules:
-    - if: $LATEST == "build"
 
 build:armv7:latest:
-  rules:
-    - if: $LATEST == "build"
   needs:
     - download:latest
   variables:
@@ -24,8 +21,6 @@ build:armv7:latest:
     - native-amd64
 
 build:arm64:latest:
-  rules:
-    - if: $LATEST == "build"
   needs:
     - download:latest
   variables:
@@ -36,8 +31,6 @@ build:arm64:latest:
   extends: .build
 
 build:amd64:latest:
-  rules:
-    - if: $LATEST == "build"
   needs:
     - download:latest
   variables:
@@ -50,8 +43,6 @@ build:amd64:latest:
     - native-amd64
 
 containerize:latest:
-  rules:
-    - if: $LATEST == "build"
   extends: .containerize
   needs:
     - build:amd64:latest
@@ -61,14 +52,11 @@ containerize:latest:
     TYPE: latest
 
 scan:latest:
-  rules:
-    - if: $LATEST == "build"
   needs:
     - job: containerize:latest
       artifacts: false
   extends: .container_scanning
   before_script:
-    - export VERSION=$(cat version.txt)
     - export SCANNING_IMAGE_NAME="${CI_REGISTRY_IMAGE}:${VERSION}"
   variables:
     GIT_STRATEGY: none
