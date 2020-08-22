@@ -31,6 +31,9 @@ check-versions:
 
 trigger-latest:
   stage: trigger
+  needs:
+    - job: check-version
+      artifacts: true
   trigger:
     include: /.gitlab/latest.yml
     strategy: depend
@@ -42,6 +45,9 @@ trigger-latest:
 
 trigger-stable:
   stage: trigger
+  needs:
+    - job: check-version
+      artifacts: true
   trigger:
     include: /.gitlab/stable.yml
     strategy: depend
