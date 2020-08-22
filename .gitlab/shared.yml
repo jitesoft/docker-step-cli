@@ -1,9 +1,3 @@
-stages:
-  - download
-  - build
-  - containerize
-  - scan
-
 .download:
   stage: download
   image: registry.gitlab.com/jitesoft/dockerfiles/misc:latest
