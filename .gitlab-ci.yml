@@ -12,7 +12,7 @@ check-versions:
     - STABLE=$(wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].name")
     - LATEST=$(wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name")
     - if [ $STABLE != $CUR_STABLE ]; then echo "$STABLE" > build-stable.txt; echo "STABLE=build" > .env; fi
-    - if [ $LATEST != $CUR_LATEST ]; then echo "$LATEST" > build-stable.txt; echo "LATEST=build" >> .env; fi
+    - if [ $LATEST != $CUR_LATEST ]; then echo "$LATEST" > build-latest.txt; echo "LATEST=build" >> .env; fi
     - if [ $LATEST == $STABLE ]; then rm build-stable.txt; echo "LATEST=build" > .env; fi
   cache:
     key: step-cli.versions
@@ -20,6 +20,7 @@ check-versions:
       - stable.txt
       - latest.txt
   artifacts:
+    when: on_success
     reports:
       dotenv: .env
     paths:
