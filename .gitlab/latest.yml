@@ -1,18 +1,18 @@
-download:latest:
+.rules-latest: &rules-latest
   rules:
     - if: '$BUILD == "latest"'
       when: always
     - when: never
+
+download:latest:
+  <<: *rules-latest
   extends: .download
   before_script:
     - apk add --no-cache grep wget
     - wget -qO- https://api.github.com/repos/smallstep/cli/tags | jq -r ".[0].name" > version.txt
 
 build:armv7:latest:
-  rules:
-    - if: '$BUILD == "latest"'
-      when: always
-    - when: never
+  <<: *rules-latest
   needs:
     - download:latest
   variables:
@@ -26,10 +26,7 @@ build:armv7:latest:
     - native-amd64
 
 build:arm64:latest:
-  rules:
-    - if: '$BUILD == "latest"'
-      when: always
-    - when: never
+  <<: *rules-latest
   needs:
     - download:latest
   variables:
@@ -40,10 +37,7 @@ build:arm64:latest:
   extends: .build
 
 build:amd64:latest:
-  rules:
-    - if: '$BUILD == "latest"'
-      when: always
-    - when: never
+  <<: *rules-latest
   needs:
     - download:latest
   variables:
@@ -56,10 +50,7 @@ build:amd64:latest:
     - native-amd64
 
 containerize:latest:
-  rules:
-    - if: '$BUILD == "latest"'
-      when: always
-    - when: never
+  <<: *rules-latest
   extends: .containerize
   needs:
     - build:amd64:latest
@@ -69,10 +60,7 @@ containerize:latest:
     TYPE: latest
 
 scan:latest:
-  rules:
-    - if: '$BUILD == "latest"'
-      when: always
-    - when: never
+  <<: *rules-latest
   needs:
     - job: containerize:latest
       artifacts: false

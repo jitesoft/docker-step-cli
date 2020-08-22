@@ -1,18 +1,18 @@
-download:stable:
+.rules-stable: &rules-stable
   rules:
     - if: '$BUILD == "stable"'
       when: always
     - when: never
+
+download:stable:
+  <<: *rules-stable
   extends: .download
   before_script:
     - apk add --no-cache grep wget
     - wget -qO- https://api.github.com/repos/smallstep/cli/releases | jq -r ".[0].tag_name" > version.txt
 
 build:armv7:stable:
-  rules:
-    - if: '$BUILD == "stable"'
-      when: always
-    - when: never
+  <<: *rules-stable
   needs:
     - download:stable
   variables:
@@ -26,10 +26,7 @@ build:armv7:stable:
     - native-amd64
 
 build:arm64:stable:
-  rules:
-    - if: '$BUILD == "stable"'
-      when: always
-    - when: never
+  <<: *rules-stable
   needs:
     - download:stable
   variables:
@@ -40,10 +37,7 @@ build:arm64:stable:
   extends: .build
 
 build:amd64:stable:
-  rules:
-    - if: '$BUILD == "stable"'
-      when: always
-    - when: never
+  <<: *rules-stable
   needs:
     - download:stable
   variables:
@@ -56,10 +50,7 @@ build:amd64:stable:
     - native-amd64
 
 containerize:stable:
-  rules:
-    - if: '$BUILD == "stable"'
-      when: always
-    - when: never
+  <<: *rules-stable
   extends: .containerize
   needs:
     - build:amd64:stable
@@ -69,10 +60,7 @@ containerize:stable:
     TYPE: stable
 
 scan:stable:
-  rules:
-    - if: '$BUILD == "stable"'
-      when: always
-    - when: never
+  <<: *rules-stable
   needs:
     - job: containerize:stable
       artifacts: false
