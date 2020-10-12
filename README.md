@@ -13,17 +13,11 @@ which makes the tags change more often than this README.
 `latest` always refers to the latest version, that is, the latest tag. Stable always uses the latest release.  
 That is, latest might contain rc, alpha and beta versions, while stable will always be the latest full release.
 
-### Docker Hub
+Images can be found at:
 
-* `jitesoft/step-cli`
-    * `latest`, `x.x.x`
-    * `stable`, `x.x.x`
-
-### Gitlab
-
-* `registry.gitlab.com/jitesoft/dockerfiles/step-cli`
-  * `latest`, `x.x.x`
-  * `staböe`, `x.x.x`
+* [Docker hub](https://hub.docker.com/r/jitesoft/step-cli): `jitesoft/step-cli`  
+* [GitLab](https://gitlab.com/jitesoft/dockerfiles/step-cli): `registry.gitlab.com/jitesoft/dockerfiles/step-cli`
+* [GitHub](https://github.com/orgs/jitesoft/packages/container/package/step-cli): `ghcr.io/jitesoft/step-cli`
   
 ## Dockerfile
 
